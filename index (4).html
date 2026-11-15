@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fund Track</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2ef; --card:#ffffff; --ink:#10201a; --muted:#5f7068; --line:#d6dfda; --track:#e2e9e5;
+  --gain:#0a7d5c; --gainbg:#dff3ec; --cost:#b6452f; --costbg:#fbe6e0; --due:#96650a; --duebg:#fbefd2;
+  --hero1:#0f3d31; --hero2:#0a2a22; --heroink:#effaf5; --btn:#10201a; --btnink:#eef2ef;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1210; --card:#141d19; --ink:#e9f3ee; --muted:#8fa399; --line:#26352e; --track:#22302a;
+    --gain:#56d9a8; --gainbg:#123a2d; --cost:#ff8f78; --costbg:#3d1d17; --due:#f4bd55; --duebg:#3a2c0e;
+    --hero1:#14594a; --hero2:#0b2f27; --heroink:#effaf5; --btn:#e9f3ee; --btnink:#0c1210; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1210; --card:#141d19; --ink:#e9f3ee; --muted:#8fa399; --line:#26352e; --track:#22302a;
+  --gain:#56d9a8; --gainbg:#123a2d; --cost:#ff8f78; --costbg:#3d1d17; --due:#f4bd55; --duebg:#3a2c0e;
+  --hero1:#14594a; --hero2:#0b2f27; --heroink:#effaf5; --btn:#e9f3ee; --btnink:#0c1210; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5}
+main{max-width:640px;margin:0 auto;padding:16px 16px 56px}
+.num{font-variant-numeric:tabular-nums}
+
+/* business switcher */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;margin:0 -2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:42px;padding:0 16px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip[aria-selected="true"]{background:var(--btn);color:var(--btnink);border-color:var(--btn)}
+.chip.new{border-style:dashed;background:transparent}
+.newbiz{display:flex;gap:8px;margin:0 0 12px}
+.newbiz input{flex:1;min-width:0}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:28px;padding:26px 22px 22px;color:var(--heroink);background:linear-gradient(155deg,var(--hero1),var(--hero2))}
+.hero::after{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;border:34px solid rgba(255,255,255,.06)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.05rem}
+.logo{flex:none;width:32px;height:32px;border-radius:10px;background:var(--heroink);color:var(--hero2);display:grid;place-items:center;font-weight:800}
+.brand span:last-child{overflow-wrap:anywhere}
+.lbl{margin:26px 0 0;font-size:.95rem;opacity:.75}
+.net{margin:2px 0 0;font-size:clamp(3.2rem,16vw,5.4rem);font-weight:800;line-height:1;letter-spacing:-.035em}
+.net.neg{color:#ffb4a4}
+.recov{margin:22px 0 8px;height:10px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden}
+.recov i{display:block;height:100%;width:0;border-radius:99px;background:#8ff0cb;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.recovtxt{margin:0;font-size:.92rem;opacity:.85}
+
+/* welcome */
+.welcome h1{margin:22px 0 6px;font-size:clamp(1.9rem,8vw,2.6rem);font-weight:800;line-height:1.1;letter-spacing:-.03em}
+.welcome p{margin:0 0 20px;opacity:.8;max-width:34ch}
+.welcome form{display:grid;gap:10px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 0}
+.stat{border-radius:20px;padding:14px 14px 13px;min-width:0}
+.stat small{display:block;font-size:.82rem;opacity:.8}
+.stat b{display:block;font-size:1.28rem;font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere}
+.s-inv{background:var(--costbg);color:var(--cost)} .s-rev{background:var(--gainbg);color:var(--gain)} .s-due{background:var(--duebg);color:var(--due)}
+
+/* cards */
+.card{background:var(--card);border-radius:24px;padding:20px 18px 18px;margin-top:14px;border:1px solid var(--line)}
+.card h2{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
+.card h2 .dot{width:12px;height:12px;border-radius:4px;flex:none}
+.card h2 .tot{margin-left:auto;font-weight:800}
+.hint{margin:0 0 6px;color:var(--muted);font-size:.9rem}
+#inv .dot{background:var(--cost)} #inv .tot{color:var(--cost)}
+#rev .dot{background:var(--gain)} #rev .tot{color:var(--gain)}
+#due .dot{background:var(--due)} #due .tot{color:var(--due)}
+.bars{display:grid;gap:12px;margin-top:12px}
+.bar .row{display:flex;justify-content:space-between;gap:10px;font-size:.95rem;margin-bottom:5px}
+.bar .row span:first-child{font-weight:600;overflow-wrap:anywhere}
+.bar .t{height:9px;border-radius:99px;background:var(--track);overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:99px;background:var(--gain);width:0;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+ul{list-style:none;margin:8px 0 0;padding:0}
+li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+.av{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:800}
+#inv .av{background:var(--costbg);color:var(--cost)} #rev .av{background:var(--gainbg);color:var(--gain)} #due .av{background:var(--duebg);color:var(--due)}
+.nm{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.amt{font-weight:800;white-space:nowrap}
+.ic{flex:none;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;min-height:36px;min-width:36px;padding:0 10px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.ic:hover{color:var(--ink);border-color:var(--ink)}
+.ic.ok{color:var(--gain);border-color:var(--gain)}
+.empty{display:block;padding:14px 0 4px;color:var(--muted)}
+
+/* forms */
+input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-height:46px;min-width:0}
+.btn{font:inherit;font-weight:800;background:var(--btn);color:var(--btnink);border:0;border-radius:12px;min-height:46px;padding:0 18px;cursor:pointer}
+.hero .btn{background:var(--heroink);color:var(--hero2)}
+.hero input{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:var(--heroink)}
+.hero input::placeholder{color:rgba(255,255,255,.6)}
+.toggle{width:100%;margin-top:10px;min-height:46px;border-radius:14px;border:1.5px dashed var(--line);background:transparent;color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.toggle:hover{border-color:var(--ink)}
+.add{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-top:10px;animation:pop .22s ease-out}
+.add .btn{grid-column:1/-1}
+@keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+:focus-visible{outline:3px solid var(--gain);outline-offset:2px}
+footer{margin-top:22px;color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer button{background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+#app.th-blue{--hero1:#1d4a7a;--hero2:#0f2a4a;--gain:#1b6fb8;--gainbg:#dbeafb}
+#app.th-purple{--hero1:#5b3a8f;--hero2:#33204f;--gain:#7b4bc2;--gainbg:#eadffb}
+#app.th-orange{--hero1:#a94a12;--hero2:#5e2608;--gain:#c25c14;--gainbg:#fde6d3}
+#app.th-rose{--hero1:#a8284f;--hero2:#5c1129;--gain:#c4325f;--gainbg:#fbdde6}
+#app.th-slate{--hero1:#3b4a56;--hero2:#1c262e;--gain:#4a6274;--gainbg:#e1e8ed}
+@media (prefers-color-scheme:dark){
+:root:not([data-theme="light"]) #app.th-blue{--hero1:#1f5f9f;--hero2:#0d2440;--gain:#6db6ff;--gainbg:#12304d}
+:root:not([data-theme="light"]) #app.th-purple{--hero1:#6a45a6;--hero2:#2a1a45;--gain:#c3a0ff;--gainbg:#2e1f4a}
+:root:not([data-theme="light"]) #app.th-orange{--hero1:#b9561a;--hero2:#3d1a07;--gain:#ffa465;--gainbg:#43230f}
+:root:not([data-theme="light"]) #app.th-rose{--hero1:#b53660;--hero2:#40101f;--gain:#ff8fb1;--gainbg:#471a2b}
+:root:not([data-theme="light"]) #app.th-slate{--hero1:#4b5f6e;--hero2:#151d23;--gain:#9fb9ca;--gainbg:#25333d}
+}
+.hero::after{pointer-events:none}
+.brand{position:relative;z-index:1}
+.brand #bname{flex:1}
+.gear{flex:none;margin-left:auto;min-height:36px;padding:0 14px;border-radius:99px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:var(--heroink);font:inherit;font-size:.88rem;font-weight:600;cursor:pointer}
+.hero .ic{color:var(--heroink);border-color:rgba(255,255,255,.3)}
+.cdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;border:1.5px solid rgba(255,255,255,.65)}
+.card h3,.hero h3{margin:18px 0 6px;font-size:.95rem;font-weight:600;color:var(--muted)}
+.hero h3{color:inherit;opacity:.8}
+.swatches{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 4px}
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 2px var(--line);cursor:pointer}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.setrow .hint{margin:0}
+#clearBiz{color:var(--cost);border-color:var(--cost)}
+.crow{display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
+.hero .crow{border-color:rgba(255,255,255,.2)}
+#closedW{margin-top:18px}
+.caution{margin-top:22px;padding:14px 16px;border-radius:16px;background:var(--duebg);color:var(--due);border:1px solid var(--due)}
+.caution b{display:block;margin-bottom:2px}
+.caution p{margin:0;font-size:.92rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <section class="hero welcome" id="welcome" hidden>
+    <div class="brand"><span class="logo">₹</span><span>Fund Track</span></div>
+    <h1>Add your first business</h1>
+    <p>Track what you invest, what you earn and what you are still owed. Add more businesses any time and switch between them.</p>
+    <form id="firstForm" autocomplete="off"><input id="firstName" placeholder="Business name" aria-label="Business name" required><button class="btn">Create business</button></form><div id="closedW"></div>
+  </section>
+
+  <div id="app" hidden>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Businesses"></div>
+    <form class="newbiz" id="newForm" autocomplete="off" hidden><input id="newName" placeholder="Business name" aria-label="Business name" required><button class="btn">Add</button></form>
+
+    <header class="hero">
+      <div class="brand"><span class="logo" id="logo"></span><span id="bname"></span><button class="gear" id="gear" type="button" aria-expanded="false" aria-controls="settings">⚙ Settings</button></div>
+      <p class="lbl" id="lbl">Net profit</p>
+      <div class="net num" id="net">₹0</div>
+      <div class="recov" role="img" aria-label="Investment recovered"><i id="rbar"></i></div>
+      <p class="recovtxt" id="rtxt"></p>
+    </header>
+
+    <section class="card" id="settings" hidden>
+      <h2 id="setTitle">Settings</h2>
+      <h3>Colour theme</h3>
+      <div class="swatches" id="swatches"></div>
+      <h3>This business</h3>
+      <div class="setrow"><div><b>Delete all data</b><p class="hint">Erase every entry. The business stays.</p></div><button class="ic" id="clearBiz" type="button">Delete data</button></div>
+      <div class="setrow"><div><b>Close business</b><p class="hint">Hide it from the top. Its data is kept.</p></div><button class="ic" id="closeBiz" type="button">Close</button></div>
+      <div id="closedS"></div>
+      <button class="toggle" id="setDone" type="button">Done</button>
+    </section>
+
+    <div class="stats">
+      <div class="stat s-inv"><small>Invested</small><b class="num" id="sInv"></b></div>
+      <div class="stat s-rev"><small>Earned</small><b class="num" id="sRev"></b></div>
+      <div class="stat s-due"><small>Still due</small><b class="num" id="sDue"></b></div>
+    </div>
+
+    <section class="card">
+      <h2>Earnings by client</h2>
+      <div class="bars" id="bars"></div>
+    </section>
+
+    <section class="card" id="inv">
+      <h2><span class="dot"></span>Investment<span class="tot num"></span></h2>
+      <ul></ul>
+      <button class="toggle" type="button">+ Add investment</button>
+      <form class="add" autocomplete="off" hidden><input name="name" placeholder="What did you buy?" aria-label="Item name" required><input name="amt" type="number" min="0" inputmode="numeric" placeholder="₹ Amount" aria-label="Amount" required><button class="btn">Save investment</button></form>
+    </section>
+
+    <section class="card" id="rev">
+      <h2><span class="dot"></span>Revenue<span class="tot num"></span></h2>
+      <ul></ul>
+      <button class="toggle" type="button">+ Add revenue</button>
+      <form class="add" autocomplete="off" hidden><input name="name" placeholder="Client or job" aria-label="Client" required><input name="amt" type="number" min="0" inputmode="numeric" placeholder="₹ Amount" aria-label="Amount" required><button class="btn">Save revenue</button></form>
+    </section>
+
+    <section class="card" id="due">
+      <h2><span class="dot"></span>Money due<span class="tot num"></span></h2>
+      <p class="hint">Tap Received when the money comes in. It moves to Revenue.</p>
+      <ul></ul>
+      <button class="toggle" type="button">+ Add money due</button>
+      <form class="add" autocomplete="off" hidden><input name="name" placeholder="Who owes you?" aria-label="Client" required><input name="amt" type="number" min="0" inputmode="numeric" placeholder="₹ Amount" aria-label="Amount" required><button class="btn">Save money due</button></form>
+    </section>
+
+    <div class="caution" role="note"><b>Caution</b><p>Your data is saved only on this device. If you change your device, clear your browser data or uninstall the app, all your data can be deleted and cannot be recovered.</p></div>
+  </div>
+</main>
+<script>
+(function(){
+  var KEY="fund-track-businesses-v2";
+  var state={list:[],active:null};
+  try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.list))state=p}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+  var $=function(id){return document.getElementById(id)};
+  var fmt=function(n){return"₹"+Number(n).toLocaleString("en-IN")};
+  var sum=function(a){return a.reduce(function(t,x){return t+x.amt},0)};
+  var uid=function(){return Date.now()+Math.floor(Math.random()*100000)};
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  var THEMES=[{id:"green",name:"Green",c:"#0f6b53"},{id:"blue",name:"Blue",c:"#1d5fa0"},{id:"purple",name:"Purple",c:"#6a45a6"},{id:"orange",name:"Orange",c:"#c25c14"},{id:"rose",name:"Rose",c:"#c4325f"},{id:"slate",name:"Slate",c:"#4a6274"}];
+  function opens(){return state.list.filter(function(b){return !b.closed})}
+  function cur(){var o=opens();for(var i=0;i<o.length;i++)if(o[i].id===state.active)return o[i];return o[0]||null}
+  function themeOf(b){return THEMES.filter(function(t){return t.id===b.theme})[0]||THEMES[0]}
+  function addBiz(name){var b={id:uid(),name:name,theme:THEMES[state.list.length%THEMES.length].id,inv:[],rev:[],due:[]};state.list.push(b);state.active=b.id;save();render()}
+
+  function renderTabs(){
+    var t=$("tabs");t.textContent="";var c=cur();
+    state.list.forEach(function(b){
+      if(b.closed)return;var x=el("button","chip");var dt=el("span","cdot");dt.style.background=themeOf(b).c;x.appendChild(dt);x.appendChild(document.createTextNode(b.name));x.type="button";x.setAttribute("role","tab");
+      x.setAttribute("aria-selected",c&&b.id===c.id?"true":"false");
+      x.onclick=function(){state.active=b.id;save();render()};
+      t.appendChild(x);
+    });
+    var n=el("button","chip new","+ New business");n.type="button";
+    n.onclick=function(){var f=$("newForm");f.hidden=!f.hidden;if(!f.hidden)$("newName").focus()};
+    t.appendChild(n);
+  }
+
+  function render(){
+    var b=cur();
+    $("welcome").hidden=!!b;$("app").hidden=!b;if(!b)renderClosed($("closedW"));
+    if(!b)return;
+    state.active=b.id;
+    renderTabs();
+    $("bname").textContent=b.name;$("app").className="th-"+themeOf(b).id;renderSettings(b);
+    $("logo").textContent=(b.name.trim().charAt(0)||"?").toUpperCase();
+
+    ["inv","rev","due"].forEach(function(k){
+      var sec=$(k),ul=sec.querySelector("ul");
+      ul.textContent="";
+      sec.querySelector(".tot").textContent=fmt(sum(b[k]));
+      if(!b[k].length)ul.appendChild(el("li","empty","Nothing here yet."));
+      b[k].forEach(function(it){
+        var li=el("li");
+        li.appendChild(el("span","av",(it.name.trim().charAt(0)||"?").toUpperCase()));
+        li.appendChild(el("span","nm",it.name));
+        li.appendChild(el("span","amt num",fmt(it.amt)));
+        if(k==="due"){
+          var r=el("button","ic ok","Received");r.type="button";
+          r.setAttribute("aria-label","Mark "+it.name+" as received");
+          r.onclick=function(){b.due=b.due.filter(function(x){return x.id!==it.id});b.rev.push(it);save();render()};
+          li.appendChild(r);
+        }
+        var d=el("button","ic","✕");d.type="button";d.setAttribute("aria-label","Delete "+it.name);
+        d.onclick=function(){b[k]=b[k].filter(function(x){return x.id!==it.id});save();render()};
+        li.appendChild(d);ul.appendChild(li);
+      });
+    });
+
+    var inv=sum(b.inv),rev=sum(b.rev),due=sum(b.due),net=rev-inv;
+    $("sInv").textContent=fmt(inv);$("sRev").textContent=fmt(rev);$("sDue").textContent=fmt(due);
+    var n=$("net");n.textContent=(net<0?"−":"")+fmt(Math.abs(net));n.className="net num"+(net<0?" neg":"");
+    $("lbl").textContent=net<0?"Still to recover":"Net profit";
+    var pct=inv>0?rev/inv*100:(rev>0?100:0);
+    $("rtxt").textContent=inv>0
+      ?(pct>=100?"Investment earned back "+(rev/inv).toFixed(1)+" times over":"Recovered "+Math.round(pct)+"% of your investment")
+      :"Add your investment and revenue to see your progress";
+    var rb=$("rbar");rb.style.width="0";
+    requestAnimationFrame(function(){requestAnimationFrame(function(){rb.style.width=Math.min(100,pct)+"%"})});
+
+    var map={};b.rev.forEach(function(x){var key=x.name.trim().toLowerCase();
+      if(!map[key])map[key]={name:x.name.trim(),amt:0};map[key].amt+=x.amt});
+    var list=Object.keys(map).map(function(k){return map[k]}).sort(function(a,c){return c.amt-a.amt});
+    var bars=$("bars");bars.textContent="";
+    if(!list.length)bars.appendChild(el("p","hint","Add revenue to see which clients pay you the most."));
+    var max=list.length?list[0].amt:1;
+    list.forEach(function(c){
+      var bar=el("div","bar"),row=el("div","row");
+      row.appendChild(el("span",null,c.name));row.appendChild(el("span","num",fmt(c.amt)));
+      var t=el("div","t"),i=el("i");t.appendChild(i);bar.appendChild(row);bar.appendChild(t);bars.appendChild(bar);
+      requestAnimationFrame(function(){requestAnimationFrame(function(){i.style.width=(max?c.amt/max*100:0)+"%"})});
+    });
+  }
+
+  $("firstForm").addEventListener("submit",function(e){
+    e.preventDefault();var v=$("firstName").value.trim();if(!v)return;$("firstName").value="";addBiz(v);
+  });
+  $("newForm").addEventListener("submit",function(e){
+    e.preventDefault();var v=$("newName").value.trim();if(!v)return;$("newName").value="";$("newForm").hidden=true;addBiz(v);
+  });
+  document.querySelectorAll(".card .toggle").forEach(function(btn){
+    btn.dataset.t=btn.textContent;
+    btn.addEventListener("click",function(){
+      var f=btn.parentNode.querySelector("form");f.hidden=!f.hidden;
+      btn.textContent=f.hidden?btn.dataset.t:"Cancel";
+      if(!f.hidden)f.name.focus();
+    });
+  });
+  document.querySelectorAll("form.add").forEach(function(f){
+    f.addEventListener("submit",function(ev){
+      ev.preventDefault();
+      var k=f.parentNode.id,b=cur(),name=f.name.value.trim(),amt=parseFloat(f.amt.value);
+      if(!b||!name||isNaN(amt)||amt<0)return;
+      b[k].push({id:uid(),name:name,amt:amt});
+      f.reset();f.hidden=true;
+      var tb=f.parentNode.querySelector(".toggle");tb.textContent=tb.dataset.t;
+      save();render();
+    });
+  });
+  function renderSettings(b){
+    $("setTitle").textContent="Settings for "+b.name;
+    var sw=$("swatches");sw.textContent="";
+    THEMES.forEach(function(t){
+      var x=el("button","sw");x.type="button";x.style.background=t.c;
+      x.setAttribute("aria-label",t.name);x.setAttribute("aria-pressed",t.id===themeOf(b).id?"true":"false");
+      x.onclick=function(){b.theme=t.id;save();render()};
+      sw.appendChild(x);
+    });
+    renderClosed($("closedS"));
+  }
+  function renderClosed(box){
+    box.textContent="";
+    var cl=state.list.filter(function(b){return b.closed});
+    if(!cl.length)return;
+    box.appendChild(el("h3",null,"Closed businesses"));
+    cl.forEach(function(b){
+      var r=el("div","crow");r.appendChild(el("span","nm",b.name));
+      var o=el("button","ic ok","Reopen");o.type="button";
+      o.onclick=function(){b.closed=false;state.active=b.id;save();render()};
+      var d=el("button","ic","Delete");d.type="button";
+      d.onclick=function(){if(confirm("Delete "+b.name+" and all its data for good?")){state.list=state.list.filter(function(x){return x.id!==b.id});save();render()}};
+      r.appendChild(o);r.appendChild(d);box.appendChild(r);
+    });
+  }
+  $("gear").onclick=function(){var s=$("settings");s.hidden=!s.hidden;this.setAttribute("aria-expanded",s.hidden?"false":"true");if(!s.hidden)s.scrollIntoView({behavior:"smooth",block:"nearest"})};
+  $("setDone").onclick=function(){$("settings").hidden=true;$("gear").setAttribute("aria-expanded","false")};
+  $("clearBiz").onclick=function(){var b=cur();if(!b)return;if(confirm("Delete all entries of "+b.name+"? The business stays, but its investment, revenue and money due will be erased.")){b.inv=[];b.rev=[];b.due=[];save();render()}};
+  $("closeBiz").onclick=function(){var b=cur();if(!b)return;if(confirm("Close "+b.name+"? It will be hidden from the top. Its data is kept and you can reopen it from Settings.")){b.closed=true;$("settings").hidden=true;$("gear").setAttribute("aria-expanded","false");save();render()}};
+  render();
+})();
+</script>
+</body>
+</html>
