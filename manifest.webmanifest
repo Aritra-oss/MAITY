@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Fund Track",
+  "short_name": "Fund Track",
+  "description": "Track investment, revenue and money due for your businesses.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A2A22",
+  "theme_color": "#0F3D31",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
